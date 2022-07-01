@@ -5,7 +5,7 @@ async function connect() {
     try {
         await mongoose.connect(process.env.DB);
         console.log("Connect successful !!");
-    } catch(e) {
+    } catch (e) {
         console.log("Connect failed !!");
     }
 }
