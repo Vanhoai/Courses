@@ -40,7 +40,7 @@ class CourseController {
             // course.save();
             const course = await Course.create(req.body);
             // res.status(200).json(course);
-            res.redirect("/");
+            res.redirect("/me/stored/courses");
         } catch (err) {
             next(err);
         }
@@ -77,9 +77,62 @@ class CourseController {
     async destroy(req, res, next) {
         try {
             const id = req.params.id;
+            const course = await Course.delete({ _id: id });
+            res.redirect("back");
+            // res.status(200).json(course);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // [PATCH] /courses/:id/restore
+    async restore(req, res, next) {
+        try {
+            const id = req.params.id;
+            const course = await Course.restore({ _id: id });
+            res.redirect("back");
+            // res.status(200).json(course);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // [DELETE] /courses/:id/remove
+    async remove(req, res, next) {
+        try {
+            const id = req.params.id;
             const course = await Course.deleteOne({ _id: id });
             res.redirect("back");
             // res.status(200).json(course);
+        } catch (err) {
+            next(err);
+        }
+    }
+
+    // [POST] /courses/handle-form-action
+    async handleFormAction(req, res, next) {
+        try {
+            const action = req.body.action;
+            const ids = req.body.courseIds;
+            switch (action) {
+                case "delete":
+                    await Course.delete({ _id: { $in: ids } });
+                    res.redirect("/me/stored/courses");
+                    // res.status(200).json("deleted successfully");
+                    break;
+                case "restore":
+                    await Course.restore({ _id: { $in: ids } });
+                    res.redirect("/me/stored/courses");
+
+                    // em xinh nhu mot thien than <333
+
+                    break;
+                default:
+                    res.status(400).json({
+                        message: "Invalid action",
+                    });
+            }
+            // res.status(200).json(req.body);
         } catch (err) {
             next(err);
         }

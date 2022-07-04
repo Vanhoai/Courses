@@ -8,6 +8,9 @@ require("dotenv").config();
 const app = express();
 
 // middleware
+const SortMiddleware = require("./app/middlewares/SortMiddleware");
+
+app.use(SortMiddleware);
 app.use(
     express.urlencoded({
         extended: true,
@@ -22,6 +25,26 @@ app.engine(
         extname: ".hbs",
         helpers: {
             sum: (a, b) => a + b,
+            sortable: (field, sort) => {
+                const currentType = field === sort.column ? sort.type : "default";
+
+                const icons = {
+                    default: "fas fa-sort",
+                    asc: "fas fa-sort-amount-down",
+                    desc: "fa-solid fa-arrow-down-short-wide",
+                };
+
+                const types = {
+                    default: "desc",
+                    asc: "desc",
+                    desc: "asc",
+                };
+
+                const icon = icons[currentType];
+                const type = types[currentType];
+
+                return `<a href="?_sort&column=${field}&type=${type}"><i class="${icon}"></i></a>`;
+            },
         },
     })
 );

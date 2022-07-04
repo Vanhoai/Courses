@@ -1,0 +1,158 @@
+<form class="mt-4" method="POST" name="form-restore" action="/courses/handle-form-action">
+    <div>
+        <h3>MY COURSES DELETED</h3>
+        <a href="/courses/create">Create course</a>
+        <div class="mt-4">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="select--all">
+                <label class="form-check-label" for="select--all">
+                    Select all
+                </label>
+            </div>
+            <select class="mt-4 form-control-sm form-select" name="action" aria-label="Default select example">
+                <option value="1">------- Select action -------</option>
+                <option value="restore">restore</option>
+            </select>
+            <button style="padding: 12px 20px;" type="submit"
+                class="btn-restore-all disabled mt-4 btn btn-primary btn-sm">Apply</button>
+        </div>
+    </div>
+    <table class="table mt-4">
+        <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">STT</th>
+                <th scope="col">Name</th>
+                <th scope="col">Description</th>
+                <th scope="col">DeletedAt</th>
+                <th scope="col"></th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each courses}}
+            <tr>
+                <td>
+                    <input class="form-check-input" type="checkbox" name="courseIds[]" value="{{this._id}}" id="">
+                </td>
+                <th scope="row">{{sum @index 1}}</th>
+                <td>{{this.name}}</td>
+                <td>{{this.description}}</td>
+                <td>{{this.deletedAt}}</td>
+                <td>
+                    <a href="" data-id="{{this._id}}" class="btn btn-link btn-restore">Restore</a>
+                    <a href="" data-bs-toggle="modal" data-id="{{this._id}}" data-bs-target="#delete-course"
+                        class="btn btn-link">Remove</a>
+                </td>
+            </tr>
+            {{else}}
+            <tr>
+                <td class="text-center" colspan="5"> Recycle is empty <a href="/me/stored/courses"> List my course </a>
+                </td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+</form>
+
+<!-- Modal -->
+<div class="modal fade" id="delete-course" tabindex="-1" aria-labelledby="" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="">Delete course</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                You are about to delete this course. Are you sure?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger btn-delete-course">Delete</button>
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{!-- form hidden --}}
+<form name="form-delete" method="POST"></form>
+
+{{!-- form hidden --}}
+<form name="form-restore" method="POST"></form>
+
+
+<script>
+    const modal = document.getElementById('delete-course');
+    const formDelete = document.forms["form-delete"];
+    const formRestore = document.forms["form-restore"];
+    const btnDeleteCourse = document.querySelector('.btn-delete-course');
+    const ListRestoreBtn = document.querySelectorAll('.btn-restore');
+    const formRestoreAll = document.forms["form-restore"];
+    const btnRestoreAll = document.querySelector(".btn-restore-all");
+    const selectAll = document.querySelector('input[id="select--all"]');
+    const inputCheckList = document.querySelectorAll('input[name="courseIds[]"]');
+    const selectAction = document.querySelector("select[name='action']");
+    let recipient;
+
+    console.log(selectAll);
+
+    ListRestoreBtn.forEach((btn) => {
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+            const id = event.target.getAttribute('data-id');
+            formRestore.action = `/courses/${id}/restore?_method=PATCH`;
+            formRestore.submit();
+        });
+    });
+
+    modal.addEventListener('show.bs.modal', function (event) {
+        // Button that triggered the modal
+        const button = event.relatedTarget
+        // Extract info from data-bs-* attributes
+        recipient = button.getAttribute('data-id');
+    })
+
+    btnDeleteCourse.addEventListener("click", (event) => {
+        event.preventDefault();
+        formDelete.action = `/courses/${recipient}/remove?_method=DELETE`;
+        formDelete.submit();
+    })
+
+
+    selectAll.addEventListener("change", (event) => {
+        inputCheckList.forEach((input) => {
+            input.checked = event.target.checked;
+        });
+        handleToggleBtn();
+    })
+
+    inputCheckList.forEach(input => {
+        input.addEventListener("change", (event) => {
+            const isCheckAll = [...inputCheckList].every(input => input.checked);
+            selectAll.checked = isCheckAll;
+
+            handleToggleBtn();
+        })
+    })
+
+    const handleToggleBtn = () => {
+        const listChecked = document.querySelectorAll('input[name="courseIds[]"]:checked');
+        console.log(listChecked);
+        if (listChecked.length > 0) {
+            btnRestoreAll.classList.remove('disabled');
+        } else {
+            btnRestoreAll.classList.add('disabled');
+        }
+    }
+
+    btnRestoreAll.addEventListener("click", (event) => {
+        event.preventDefault();
+
+        if (btnRestoreAll.classList.contains('disabled') || selectAction.value === '1') {
+            return;
+        }
+
+        formRestoreAll.submit();
+    })
+
+
+</script>
